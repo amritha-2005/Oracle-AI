@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OracleAI - Multi-Hazard Early Warning System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============= CSS CUSTOM VARIABLES & DESIGN SYSTEM ============= */
+        :root {
+            --obsidian: #030712;
+            --obsidian-light: #0f1419;
+            --obsidian-lighter: #1a1f2e;
+            --cyan: #00f0ff;
+            --cyan-dark: #00b8cc;
+            --violet: #8b00ff;
+            --violet-light: #a020f0;
+            --amber: #ffb700;
+            --amber-dark: #ff9500;
+            --crimson: #ff0055;
+            --crimson-dark: #d60044;
+            --success-green: #00ff88;
+            --warning-yellow: #ffff00;
+            --info-blue: #0099ff;
+            
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-grotesk: 'Space Grotesk', sans-serif;
+            
+            --glow-sm: 0 0 10px rgba(0, 240, 255, 0.3);
+            --glow-md: 0 0 20px rgba(0, 240, 255, 0.5);
+            --glow-lg: 0 0 40px rgba(139, 0, 255, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: var(--font-grotesk);
+            background: linear-gradient(135deg, var(--obsidian) 0%, #0a0e1a 50%, #1a0f2e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============= HOLOGRAPHIC GLASS PANELS ============= */
+        .glass-panel {
+            background: rgba(15, 20, 35, 0.4);
+            backdrop-filter: blur(20px);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, var(--cyan), var(--violet), var(--amber)) 1;
+            border-radius: 12px;
+            box-shadow: 
+                0 0 30px rgba(0, 240, 255, 0.2),
+                0 0 60px rgba(139, 0, 255, 0.15),
+                inset 0 0 20px rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .glass-panel:hover {
+            box-shadow: 
+                0 0 40px rgba(0, 240, 255, 0.4),
+                0 0 80px rgba(139, 0, 255, 0.25),
+                inset 0 0 30px rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at top-left, rgba(0, 240, 255, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        /* ============= CONTAINER & LAYOUT ============= */
+        .command-center-wrapper {
+            display: flex;
+            min-height: 100vh;
+            gap: 0;
+        }
+
+        /* ============= SIDEBAR NAVIGATION ============= */
+        .sidebar-nav {
+            width: 280px;
+            background: linear-gradient(180deg, rgba(10, 14, 26, 0.8) 0%, rgba(26, 15, 46, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border-right: 3px solid var(--cyan);
+            padding: 2rem 0;
+            box-shadow: inset -20px 0 30px rgba(0, 240, 255, 0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            text-align: center;
+            padding: 2rem 1rem 3rem;
+            border-bottom: 2px solid var(--violet);
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-logo h2 {
+            font-family: var(--font-grotesk);
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--cyan), var(--violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+            letter-spacing: 0.15em;
+            margin-bottom: 0.3rem;
+        }
+
+        .sidebar-logo p {
+            font-size: 0.75rem;
+            color: var(--cyan);
+            letter-spacing: 0.1em;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0 1rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.8rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.2rem;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: #b0b0ff;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        .nav-link:hover {
+            background: rgba(0, 240, 255, 0.15);
+            color: var(--cyan);
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(139, 0, 255, 0.2));
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* ============= MAIN CONTENT AREA ============= */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            background: radial-gradient(circle at center, rgba(139, 0, 255, 0.05), transparent);
+            position: relative;
+        }
+
+        .main-content::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 280px;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(0, 240, 255, 0.03), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 0, 255, 0.03), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page {
+            display: none;
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============= TYPOGRAPHY ============= */
+        h1 {
+            font-family: var(--font-grotesk);
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--cyan), var(--violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-family: var(--font-grotesk);
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        h3 {
+            font-family: var(--font-grotesk);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--violet);
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .telemetry-text {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            font-weight: 400;
+        }
+
+        .telemetry-value {
+            font-family: var(--font-mono);
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--amber);
+        }
+
+        /* ============= STATUS INDICATORS ============= */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .status-critical {
+            background: rgba(255, 0, 85, 0.2);
+            color: var(--crimson);
+            border: 1px solid var(--crimson);
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+        }
+
+        .status-warning {
+            background: rgba(255, 183, 0, 0.2);
+            color: var(--amber);
+            border: 1px solid var(--amber);
+            box-shadow: 0 0 15px rgba(255, 183, 0, 0.3);
+        }
+
+        .status-info {
+            background: rgba(0, 153, 255, 0.2);
+            color: var(--info-blue);
+            border: 1px solid var(--info-blue);
+            box-shadow: 0 0 15px rgba(0, 153, 255, 0.3);
+        }
+
+        .status-ok {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--success-green);
+            border: 1px solid var(--success-green);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        /* ============= METRIC CARDS ============= */
+        .metric-card {
+            background: rgba(15, 20, 35, 0.5);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(0, 240, 255, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 
+                0 0 20px rgba(0, 240, 255, 0.15),
+                inset 0 0 15px rgba(255, 255, 255, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--violet);
+            box-shadow: 
+                0 0 30px rgba(139, 0, 255, 0.25),
+                inset 0 0 20px rgba(139, 0, 255, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .metric-label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-family: var(--font-mono);
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--amber);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.3rem;
+        }
+
+        .metric-subtitle {
+            font-family: var(--font-grotesk);
+            font-size: 0.85rem;
+            color: #888aaa;
+        }
+
+        /* ============= ALERT TICKER ============= */
+        .alert-ticker {
+            background: rgba(255, 0, 85, 0.1);
+            border-left: 4px solid var(--crimson);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--crimson);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .alert-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 0, 85, 0.2);
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        /* ============= CHART CONTAINER ============= */
+        .chart-container {
+            background: rgba(15, 20, 35, 0.4);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(0, 240, 255, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+
+        .chart-title {
+            font-family: var(--font-grotesk);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--cyan);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ============= BUTTON STYLING ============= */
+        .btn-command {
+            background: linear-gradient(135deg, var(--cyan), var(--violet));
+            border: 2px solid var(--cyan);
+            color: var(--obsidian);
+            font-family: var(--font-grotesk);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            font-size: 0.9rem;
+        }
+
+        .btn-command:hover {
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.5), 0 0 60px rgba(139, 0, 255, 0.4);
+            transform: translateY(-2px);
+            color: var(--obsidian);
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--violet);
+            color: var(--violet);
+            font-family: var(--font-grotesk);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.7rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(139, 0, 255, 0.2);
+            box-shadow: 0 0 20px rgba(139, 0, 255, 0.3);
+            color: var(--violet);
+            text-decoration: none;
+        }
+
+        /* ============= TABLE STYLING ============= */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .data-table th {
+            background: rgba(139, 0, 255, 0.15);
+            border-bottom: 2px solid var(--violet);
+            padding: 1rem;
+            text-align: left;
+            color: var(--violet);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .data-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+            color: #c0c0ff;
+        }
+
+        .data-table tr:hover {
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        /* ============= GRID LAYOUT ============= */
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .wide-panel {
+            grid-column: 1 / -1;
+        }
+
+        /* ============= FORECAST TIMELINE ============= */
+        .forecast-timeline {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .forecast-card {
+            flex: 0 0 140px;
+            background: rgba(15, 20, 35, 0.5);
+            border: 2px solid rgba(0, 240, 255, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .forecast-card:hover {
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .forecast-time {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--cyan);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .forecast-icon {
+            font-size: 2rem;
+            margin: 0.5rem 0;
+        }
+
+        .forecast-value {
+            font-family: var(--font-mono);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--amber);
+        }
+
+        /* ============= MODAL/POPUP ============= */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(15, 20, 35, 0.95), rgba(26, 15, 46, 0.95));
+            border: 3px solid var(--cyan);
+            border-radius: 15px;
+            padding: 2.5rem;
+            max-width: 600px;
+            box-shadow: 0 0 60px rgba(0, 240, 255, 0.4);
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* ============= SCROLLBAR ============= */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 20, 35, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--cyan), var(--violet));
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+        }
+
+        /* ============= RESPONSIVE ============= */
+        @media (max-width: 1024px) {
+            .sidebar-nav {
+                width: 220px;
+            }
+            
+            .main-content {
+                margin-left: 220px;
+                padding: 1.5rem;
+            }
+            
+            h1 { font-size: 1.8rem; }
+            .telemetry-grid { grid-template-columns: repeat(2, 1fr); }
+            .feature-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .command-center-wrapper {
+                flex-direction: column;
+            }
+            
+            .sidebar-nav {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 3px solid var(--cyan);
+                padding: 1rem;
+            }
+            
+            .nav-menu {
+                display: flex;
+                gap: 0.5rem;
+                overflow-x: auto;
+                padding: 0 1rem;
+            }
+            
+            .nav-item { margin-bottom: 0; }
+            .nav-link { padding: 0.8rem 1rem; font-size: 0.8rem; }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .telemetry-grid { grid-template-columns: 1fr; }
+            .feature-grid { grid-template-columns: 1fr; }
+            
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.2rem; }
+            
+            .metric-value { font-size: 1.8rem; }
+        }
+
+        /* ============= PAGE-SPECIFIC STYLES ============= */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--amber);
+        }
+
+        .threat-meter {
+            height: 8px;
+            background: rgba(0, 240, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .threat-meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-green), var(--amber), var(--crimson));
+            transition: width 0.3s ease;
+        }
+
+        .mission-briefing {
+            background: rgba(0, 240, 255, 0.08);
+            border-left: 4px solid var(--cyan);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .feature-item {
+            background: rgba(139, 0, 255, 0.1);
+            border: 1px solid rgba(139, 0, 255, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: rgba(139, 0, 255, 0.15);
+            border-color: var(--violet);
+            transform: translateY(-3px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-family: var(--font-grotesk);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--violet);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-desc {
+            font-size: 0.9rem;
+            color: #a0a0c0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="command-center-wrapper">
+        <!-- ============= SIDEBAR NAVIGATION ============= -->
+        <nav class="sidebar-nav">
+            <div class="sidebar-logo">
+                <h2>ORACLE AI</h2>
+                <p>HAZARD INTELLIGENCE</p>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <div class="nav-link active" onclick="navigateTo('page1')">
+                        <span class="nav-icon">🚀</span>
+                        <span>Mission Briefing</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" onclick="navigateTo('page2')">
+                        <span class="nav-icon">🌍</span>
+                        <span>Command Centre</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" onclick="navigateTo('page3')">
+                        <span class="nav-icon">⚡</span>
+                        <span>Prediction Engine</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" onclick="navigateTo('page4')">
+                        <span class="nav-icon">📊</span>
+                        <span>Data Explorer</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" onclick="navigateTo('page5')">
+                        <span class="nav-icon">🧠</span>
+                        <span>AI Insights</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" onclick="navigateTo('page6')">
+                        <span class="nav-icon">🔮</span>
+                        <span>Scenario Lab</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" onclick="navigateTo('page7')">
+                        <span class="nav-icon">🎯</span>
+                        <span>Action Layer</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" onclick="navigateTo('page8')">
+                        <span class="nav-icon">⚙️</span>
+                        <span>Diagnostics</span>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- ============= MAIN CONTENT ============= -->
+        <main class="main-content">
+
+            <!-- PAGE 1: MISSION BRIEFING -->
+            <div id="page1" class="page active">
+                <h1>🚀 System Gateway & Mission Briefing</h1>
+                
+                <div class="mission-briefing">
+                    <p><strong>OracleAI</strong> is an explainable, multi-horizon disaster intelligence platform combining 76 years of climate learning (Gridded IMD 1951–2021 + Copernicus ERA5 2022–2026) with real-time numerical weather forecast inputs to generate district-level flood and heatwave risk predictions for 24, 48, and 72-hour horizons across India.</p>
+                </div>
+
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Historical Data Span</div>
+                        <div class="metric-value">76 YRS</div>
+                        <div class="metric-subtitle">1951–2026 Climate Archive</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Prediction Horizons</div>
+                        <div class="metric-value">3x</div>
+                        <div class="metric-subtitle">24 / 48 / 72 Hours</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Ensemble Models</div>
+                        <div class="metric-value">4</div>
+                        <div class="metric-subtitle">XGBoost, LightGBM, CatBoost, RF</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Coverage</div>
+                        <div class="metric-value">INDIA</div>
+                        <div class="metric-subtitle">All Districts + Grid Regions</div>
+                    </div>
+                </div>
+
+                <h2>Core Capabilities</h2>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🌊</div>
+                        <div class="feature-title">Multi-Hazard Detection</div>
+                        <div class="feature-desc">Simultaneous flood and heatwave risk forecasting with compound hazard identification.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🎲</div>
+                        <div class="feature-title">Uncertainty Quantification</div>
+                        <div class="feature-desc">Model disagreement indicators and probabilistic confidence bands for each forecast.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔍</div>
+                        <div class="feature-title">Explainability (SHAP/LIME)</div>
+                        <div class="feature-desc">Interpretable machine learning with feature importance and counterfactual analysis.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📍</div>
+                        <div class="feature-title">Impact Scoring</div>
+                        <div class="feature-desc">Oracle Impact Score + Vulnerability indices for civil authority decision support.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔬</div>
+                        <div class="feature-title">Climate Anomalies</div>
+                        <div class="feature-desc">Detection and flagging of rare, extreme climate events for emergency services.</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-title">Real-Time Processing</div>
+                        <div class="feature-desc">FastAPI backend with PostgreSQL, Docker containerization, and CI/CD automation.</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button class="btn-command" onclick="navigateTo('page2')">ENTER COMMAND CENTRE →</button>
+                </div>
+            </div>
+
+            <!-- PAGE 2: GLOBAL COMMAND CENTRE -->
+            <div id="page2" class="page">
+                <h1>🌍 Global Command Centre Dashboard</h1>
+
+                <div class="alert-ticker">
+                    <div class="alert-item">
+                        <span>⚠️ CRITICAL: FLOOD RISK TIER-1 ALERT ACTIVATED FOR MAHARASHTRA</span>
+                        <span style="color: var(--amber);">2026-09-07 08:32:15</span>
+                    </div>
+                    <div class="alert-item">
+                        <span>⚠️ WARNING: EXTREME HEATWAVE DETECTED ACROSS RAJASTHAN + GUJRAT</span>
+                        <span style="color: var(--amber);">2026-09-07 06:15:22</span>
+                    </div>
+                    <div class="alert-item">
+                        <span>ℹ️ INFO: COMPOUND HAZARD SCENARIO DETECTED IN UTTAR PRADESH</span>
+                        <span style="color: var(--info-blue);">2026-09-07 04:50:09</span>
+                    </div>
+                </div>
+
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Active Critical Alerts</div>
+                        <div class="metric-value">12</div>
+                        <span class="status-badge status-critical">ELEVATED</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Districts at Risk (24h)</div>
+                        <div class="metric-value">47</div>
+                        <span class="status-badge status-warning">MONITOR</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Model Ensemble Agreement</div>
+                        <div class="metric-value">87%</div>
+                        <span class="status-badge status-ok">CONFIDENT</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">System Health</div>
+                        <div class="metric-value">99.8%</div>
+                        <span class="status-badge status-ok">OPERATIONAL</span>
+                    </div>
+                </div>
+
+                <h2>24/48/72-Hour Forecast Timeline</h2>
+                <div class="forecast-timeline">
+                    <div class="forecast-card">
+                        <div class="forecast-time">24 HRS</div>
+                        <div class="forecast-icon">🌧️</div>
+                        <div class="forecast-value">68%</div>
+                        <div style="font-size: 0.8rem; color: #888aaa; margin-top: 0.3rem;">Flood Risk</div>
+                    </div>
+                    <div class="forecast-card">
+                        <div class="forecast-time">48 HRS</div>
+                        <div class="forecast-icon">🌦️</div>
+                        <div class="forecast-value">55%</div>
+                        <div style="font-size: 0.8rem; color: #888aaa; margin-top: 0.3rem;">Flood Risk</div>
+                    </div>
+                    <div class="forecast-card">
+                        <div class="forecast-time">72 HRS</div>
+                        <div class="forecast-icon">☀️</div>
+                        <div class="forecast-value">35%</div>
+                        <div style="font-size: 0.8rem; color: #888aaa; margin-top: 0.3rem;">Flood Risk</div>
+                    </div>
+                    <div class="forecast-card">
+                        <div class="forecast-time">24 HRS</div>
+                        <div class="forecast-icon">🔥</div>
+                        <div class="forecast-value">71%</div>
+                        <div style="font-size: 0.8rem; color: #888aaa; margin-top: 0.3rem;">Heat Risk</div>
+                    </div>
+                    <div class="forecast-card">
+                        <div class="forecast-time">48 HRS</div>
+                        <div class="forecast-icon">☀️</div>
+                        <div class="forecast-value">62%</div>
+                        <div style="font-size: 0.8rem; color: #888aaa; margin-top: 0.3rem;">Heat Risk</div>
+                    </div>
+                    <div class="forecast-card">
+                        <div class="forecast-time">72 HRS</div>
+                        <div class="forecast-icon">🌤️</div>
+                        <div class="forecast-value">42%</div>
+                        <div style="font-size: 0.8rem; color: #888aaa; margin-top: 0.3rem;">Heat Risk</div>
+                    </div>
+                </div>
+
+                <h2>Regional Threat Analysis</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Primary Hazard</th>
+                                <th>24h Risk</th>
+                                <th>Threat Level</th>
+                                <th>Vulnerability</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>MAHARASHTRA</td>
+                                <td>FLOOD</td>
+                                <td>85%</td>
+                                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                                <td>9.2/10</td>
+                            </tr>
+                            <tr>
+                                <td>RAJASTHAN</td>
+                                <td>HEATWAVE</td>
+                                <td>79%</td>
+                                <td><span class="status-badge status-warning">WARNING</span></td>
+                                <td>7.8/10</td>
+                            </tr>
+                            <tr>
+                                <td>UTTAR PRADESH</td>
+                                <td>COMPOUND</td>
+                                <td>62%</td>
+                                <td><span class="status-badge status-warning">MONITOR</span></td>
+                                <td>6.5/10</td>
+                            </tr>
+                            <tr>
+                                <td>WEST BENGAL</td>
+                                <td>FLOOD</td>
+                                <td>71%</td>
+                                <td><span class="status-badge status-warning">WARNING</span></td>
+                                <td>8.1/10</td>
+                            </tr>
+                            <tr>
+                                <td>ANDHRA PRADESH</td>
+                                <td>HEATWAVE</td>
+                                <td>68%</td>
+                                <td><span class="status-badge status-warning">MONITOR</span></td>
+                                <td>6.9/10</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE 3: MULTI-HAZARD PREDICTION ENGINE -->
+            <div id="page3" class="page">
+                <h1>⚡ Multi-Hazard Prediction Engine</h1>
+
+                <div class="chart-container">
+                    <div class="chart-title">Live Backend Inference</div>
+                    <form id="prediction-form" class="telemetry-grid">
+                        <label class="metric-card">Rainfall (mm)
+                            <input id="prediction-rainfall" type="number" min="0" step="0.1" value="180" required>
+                        </label>
+                        <label class="metric-card">Temperature (°C)
+                            <input id="prediction-temperature" type="number" step="0.1" value="38.5" required>
+                        </label>
+                        <label class="metric-card">Humidity (%)
+                            <input id="prediction-humidity" type="number" min="0" max="100" step="0.1" value="72" required>
+                        </label>
+                        <label class="metric-card">Total precipitation
+                            <input id="prediction-tp" type="number" min="0" step="0.1" value="12" required>
+                        </label>
+                        <label class="metric-card">Average TP rate
+                            <input id="prediction-tprate" type="number" min="0" step="0.01" value="1.2" required>
+                        </label>
+                        <label class="metric-card">Average LSP rate
+                            <input id="prediction-lsprate" type="number" min="0" step="0.01" value="0.8" required>
+                        </label>
+                        <label class="metric-card">Average CPR
+                            <input id="prediction-cpr" type="number" min="0" step="0.01" value="0.6" required>
+                        </label>
+                        <label class="metric-card">Average IE
+                            <input id="prediction-ie" type="number" min="0" step="0.01" value="0.9" required>
+                        </label>
+                        <label class="metric-card">Average RORWE
+                            <input id="prediction-rorwe" type="number" min="0" step="0.01" value="0.7" required>
+                        </label>
+                        <div class="wide-panel" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+                            <button class="btn-command" type="submit">RUN LIVE PREDICTION</button>
+                            <output id="prediction-result" class="status-badge status-info">READY</output>
+                        </div>
+                    </form>
+                </div>
+
+                <h2>Ensemble Model Outputs & Disagreement Indicators</h2>
+                
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">XGBoost Flood Probability</div>
+                        <div class="metric-value">73%</div>
+                        <div class="threat-meter">
+                            <div class="threat-meter-fill" style="width: 73%;"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">LightGBM Flood Probability</div>
+                        <div class="metric-value">69%</div>
+                        <div class="threat-meter">
+                            <div class="threat-meter-fill" style="width: 69%;"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">CatBoost Flood Probability</div>
+                        <div class="metric-value">77%</div>
+                        <div class="threat-meter">
+                            <div class="threat-meter-fill" style="width: 77%;"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Random Forest Flood Probability</div>
+                        <div class="metric-value">71%</div>
+                        <div class="threat-meter">
+                            <div class="threat-meter-fill" style="width: 71%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Heatwave Risk Ensemble</h2>
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">XGBoost Heat Probability</div>
+                        <div class="metric-value">81%</div>
+                        <div class="threat-meter">
+                            <div class="threat-meter-fill" style="width: 81%;"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">LightGBM Heat Probability</div>
+                        <div class="metric-value">78%</div>
+                        <div class="threat-meter">
+                            <div class="threat-meter-fill" style="width: 78%;"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">CatBoost Heat Probability</div>
+                        <div class="metric-value">84%</div>
+                        <div class="threat-meter">
+                            <div class="threat-meter-fill" style="width: 84%;"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Random Forest Heat Probability</div>
+                        <div class="metric-value">79%</div>
+                        <div class="threat-meter">
+                            <div class="threat-meter-fill" style="width: 79%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Model Agreement & Confidence Metrics</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem;">
+                    <div class="stat-row">
+                        <span class="stat-label">FLOOD PREDICTION CONSENSUS</span>
+                        <span class="stat-value">72.5% ± 3.2%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">MODEL DISAGREEMENT (FLOOD)</span>
+                        <span class="stat-value">8 PERCENTAGE POINTS</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">HEATWAVE PREDICTION CONSENSUS</span>
+                        <span class="stat-value">80.5% ± 2.8%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">MODEL DISAGREEMENT (HEAT)</span>
+                        <span class="stat-value">6 PERCENTAGE POINTS</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ENSEMBLE PREDICTION CONFIDENCE</span>
+                        <span class="stat-value">87% (CONFIDENT)</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ANOMALY FLAGS DETECTED</span>
+                        <span class="stat-value">3 RARE EVENTS</span>
+                    </div>
+                </div>
+
+                <h2>Hazard Classification Matrix (24-Hour)</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 2rem;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>District</th>
+                                <th>Flood Class</th>
+                                <th>Heat Class</th>
+                                <th>Compound Risk</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>NASHIK (MH)</td>
+                                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                                <td><span class="status-badge status-warning">WARNING</span></td>
+                                <td>YES</td>
+                                <td>89%</td>
+                            </tr>
+                            <tr>
+                                <td>JAIPUR (RJ)</td>
+                                <td><span class="status-badge status-info">LOW</span></td>
+                                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                                <td>NO</td>
+                                <td>92%</td>
+                            </tr>
+                            <tr>
+                                <td>LUCKNOW (UP)</td>
+                                <td><span class="status-badge status-warning">WARNING</span></td>
+                                <td><span class="status-badge status-warning">WARNING</span></td>
+                                <td>YES</td>
+                                <td>78%</td>
+                            </tr>
+                            <tr>
+                                <td>KOLKATA (WB)</td>
+                                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                                <td><span class="status-badge status-info">LOW</span></td>
+                                <td>NO</td>
+                                <td>85%</td>
+                            </tr>
+                            <tr>
+                                <td>HYDERABAD (AP)</td>
+                                <td><span class="status-badge status-warning">WARNING</span></td>
+                                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                                <td>YES</td>
+                                <td>84%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE 4: CLIMATE DATA EXPLORER -->
+            <div id="page4" class="page">
+                <h1>📊 Climate Data Explorer & Historical Analysis</h1>
+
+                <div class="mission-briefing">
+                    <p>Interactive analytics module tracking 70 years of IMD gridded data (1951–2021) and ERA5 hourly reanalysis datasets (2022–2026). Temporal trend selectors, anomaly detection readouts, and NetCDF processing pipeline logs.</p>
+                </div>
+
+                <h2>Historical Dataset Coverage</h2>
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">IMD Gridded Archive</div>
+                        <div class="metric-value">70 YRS</div>
+                        <div class="metric-subtitle">1951–2021 Daily Records</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">ERA5 Reanalysis</div>
+                        <div class="metric-value">5 YRS</div>
+                        <div class="metric-subtitle">2022–2026 Hourly Data</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Grid Resolution</div>
+                        <div class="metric-value">0.25°</div>
+                        <div class="metric-subtitle">~25 km Spatial Coverage</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Variables</div>
+                        <div class="metric-value">47</div>
+                        <div class="metric-subtitle">Temperature, Precipitation, Humidity, Pressure</div>
+                    </div>
+                </div>
+
+                <h2>Data Processing Pipeline</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem;">
+                    <div class="stat-row">
+                        <span class="stat-label">XARRAY INGESTION STATUS</span>
+                        <span class="stat-value">COMPLETE</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">NETCDF4 PARSING LATENCY</span>
+                        <span class="stat-value">240 MS</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">MISSING DATA IMPUTATION</span>
+                        <span class="stat-value">0.8% (MINIMAL)</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ANOMALY DETECTION RUNS</span>
+                        <span class="stat-value">2,847 FLAGS</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">TEMPORAL TREND ANALYSIS</span>
+                        <span class="stat-value">ACTIVE</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">FEATURE ENGINEERING COMPLETION</span>
+                        <span class="stat-value">98%</span>
+                    </div>
+                </div>
+
+                <h2>Anomaly Detection Logs</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 2rem;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Region</th>
+                                <th>Anomaly Type</th>
+                                <th>Severity</th>
+                                <th>Deviation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2026-09-07 07:45</td>
+                                <td>MAHARASHTRA</td>
+                                <td>Extreme Rainfall</td>
+                                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                                <td>+342% vs. Avg</td>
+                            </tr>
+                            <tr>
+                                <td>2026-09-06 18:30</td>
+                                <td>RAJASTHAN</td>
+                                <td>Extreme Temperature</td>
+                                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                                <td>+15.2°C vs. Avg</td>
+                            </tr>
+                            <tr>
+                                <td>2026-09-06 12:15</td>
+                                <td>UTTAR PRADESH</td>
+                                <td>Compound Event</td>
+                                <td><span class="status-badge status-warning">WARNING</span></td>
+                                <td>High Heat + Humidity</td>
+                            </tr>
+                            <tr>
+                                <td>2026-09-05 23:00</td>
+                                <td>WEST BENGAL</td>
+                                <td>Extreme Precipitation</td>
+                                <td><span class="status-badge status-critical">CRITICAL</span></td>
+                                <td>+287% vs. Avg</td>
+                            </tr>
+                            <tr>
+                                <td>2026-09-05 14:20</td>
+                                <td>KARNATAKA</td>
+                                <td>Pressure Drop</td>
+                                <td><span class="status-badge status-info">LOW</span></td>
+                                <td>-12 hPa vs. Avg</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>Temporal Trend Selectors</h2>
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn-secondary">📅 Last 7 Days</button>
+                    <button class="btn-secondary">📅 Last 30 Days</button>
+                    <button class="btn-secondary">📅 Last 1 Year</button>
+                    <button class="btn-secondary">📅 1951–2021 (Full Archive)</button>
+                </div>
+            </div>
+
+            <!-- PAGE 5: EXPLAINABLE AI & SHAP INSIGHTS -->
+            <div id="page5" class="page">
+                <h1>🧠 Explainable AI & SHAP Interpretability</h1>
+
+                <div class="mission-briefing">
+                    <p>Model interpretability panel featuring SHAP/LIME value feature contributions, variable importance charts, and deep telemetry explaining why a specific district received its hazard rating.</p>
+                </div>
+
+                <h2>Top Feature Contributions (SHAP Values)</h2>
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Feature #1: Rainfall Intensity</div>
+                        <div class="metric-value">+34.2%</div>
+                        <div class="metric-subtitle">Strongest Flood Risk Driver</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Feature #2: Soil Moisture</div>
+                        <div class="metric-value">+22.8%</div>
+                        <div class="metric-subtitle">Saturation Effect</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Feature #3: River Discharge</div>
+                        <div class="metric-value">+19.5%</div>
+                        <div class="metric-subtitle">Hydrological Feedback</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Feature #4: Temperature Trend</div>
+                        <div class="metric-value">+15.1%</div>
+                        <div class="metric-subtitle">Heatwave Intensification</div>
+                    </div>
+                </div>
+
+                <h2>SHAP Decision Explanation: Nashik District (Maharashtra)</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem;">
+                    <div class="stat-row">
+                        <span class="stat-label">FINAL PREDICTION: FLOOD RISK</span>
+                        <span class="stat-value">CRITICAL (85%)</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">BASE MODEL PROBABILITY</span>
+                        <span class="stat-value">35%</span>
+                    </div>
+                    <hr style="border: 1px solid rgba(0, 240, 255, 0.1); margin: 0.5rem 0;">
+                    <div style="padding: 1rem; background: rgba(0, 240, 255, 0.05); border-radius: 6px; margin-top: 1rem;">
+                        <p style="font-size: 0.9rem; line-height: 1.6; color: #d0d0e0;">
+                            <strong style="color: var(--cyan);">POSITIVE CONTRIBUTIONS (↑ RISK):</strong><br>
+                            • Rainfall Anomaly: +18% (observed 250mm, avg 85mm)<br>
+                            • Humidity Index: +12% (78%, elevated)<br>
+                            • Upstream Discharge: +9% (high volume flowing downstream)<br>
+                            • Forecast Precipitation (48h): +8% (additional 120mm predicted)<br>
+                        </p>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(0, 255, 136, 0.05); border-radius: 6px; margin-top: 1rem;">
+                        <p style="font-size: 0.9rem; line-height: 1.6; color: #d0d0e0;">
+                            <strong style="color: var(--success-green);">PROTECTIVE FACTORS (↓ RISK):</strong><br>
+                            • Terrain Elevation: −4% (hilly region, good drainage)<br>
+                            • Recent Clearing Events: −3% (flooding occurred 8 days ago)<br>
+                        </p>
+                    </div>
+                </div>
+
+                <h2>Feature Importance Ranking (All Districts)</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 2rem;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Feature</th>
+                                <th>Importance Score</th>
+                                <th>SHAP Mean Abs</th>
+                                <th>Primary Hazard</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Rainfall Intensity (24h Anomaly)</td>
+                                <td>0.289</td>
+                                <td>0.312</td>
+                                <td>FLOOD</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Max Temperature (Daily)</td>
+                                <td>0.247</td>
+                                <td>0.268</td>
+                                <td>HEATWAVE</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Soil Moisture Index</td>
+                                <td>0.198</td>
+                                <td>0.215</td>
+                                <td>FLOOD</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>River Discharge Volume</td>
+                                <td>0.156</td>
+                                <td>0.172</td>
+                                <td>FLOOD</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Relative Humidity (%)  </td>
+                                <td>0.142</td>
+                                <td>0.158</td>
+                                <td>HEATWAVE</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>LIME Local Explanations</h2>
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn-secondary">🔍 Explain Single Prediction</button>
+                    <button class="btn-secondary">📈 Feature Dependence Plot</button>
+                    <button class="btn-secondary">🎯 Force Plot (SHAP)</button>
+                </div>
+            </div>
+
+            <!-- PAGE 6: COUNTERFACTUAL REASONING & SCENARIO LAB -->
+            <div id="page6" class="page">
+                <h1>🔮 Counterfactual Reasoning & Scenario Laboratory</h1>
+
+                <div class="mission-briefing">
+                    <p>"What If" interactive scenario sandbox allowing operators to adjust atmospheric parameters and simulate alternate hazard trajectories, climate variations, and risk outcomes.</p>
+                </div>
+
+                <h2>Current Baseline Scenario</h2>
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Rainfall (24h)</div>
+                        <div class="metric-value">250 mm</div>
+                        <div class="metric-subtitle">Observed Nashik</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Max Temperature</div>
+                        <div class="metric-value">42.3°C</div>
+                        <div class="metric-subtitle">Jaipur Region</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Soil Moisture Index</div>
+                        <div class="metric-value">0.78</div>
+                        <div class="metric-subtitle">High Saturation</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">River Discharge</div>
+                        <div class="metric-value">12,500 m³/s</div>
+                        <div class="metric-subtitle">Above Average Flow</div>
+                    </div>
+                </div>
+
+                <h2>Interactive Scenario Adjusters</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 1.5rem;">
+                    <div class="stat-row">
+                        <span class="stat-label">RAINFALL MULTIPLIER (×)</span>
+                        <input type="range" min="0.5" max="2" step="0.1" value="1" style="flex: 1; max-width: 200px;">
+                        <span class="stat-value">1.0×</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">TEMPERATURE OFFSET (+°C)</span>
+                        <input type="range" min="-5" max="5" step="0.5" value="0" style="flex: 1; max-width: 200px;">
+                        <span class="stat-value">0.0°C</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">SOIL MOISTURE ADJUSTMENT</span>
+                        <input type="range" min="0.3" max="0.95" step="0.05" value="0.78" style="flex: 1; max-width: 200px;">
+                        <span class="stat-value">0.78</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">RIVER DISCHARGE MULTIPLIER (×)</span>
+                        <input type="range" min="0.5" max="2.5" step="0.1" value="1" style="flex: 1; max-width: 200px;">
+                        <span class="stat-value">1.0×</span>
+                    </div>
+                </div>
+
+                <h2>Scenario Outcomes & Predictions</h2>
+                <div class="telemetry-grid" style="margin-top: 2rem;">
+                    <div class="metric-card">
+                        <div class="metric-label">Baseline Flood Risk</div>
+                        <div class="metric-value">85%</div>
+                        <span class="status-badge status-critical">CRITICAL</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Scenario 1: Half Rainfall</div>
+                        <div class="metric-value">52%</div>
+                        <span class="status-badge status-warning">WARNING</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Scenario 2: Double Rainfall</div>
+                        <div class="metric-value">94%</div>
+                        <span class="status-badge status-critical">CRITICAL</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Scenario 3: Lower Soil Moisture</div>
+                        <div class="metric-value">68%</div>
+                        <span class="status-badge status-warning">WARNING</span>
+                    </div>
+                </div>
+
+                <h2>Pre-Built Scenario Templates</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem;">
+                    <button class="btn-secondary" onclick="alert('Monsoon Intensification Scenario Loaded')">🌧️ Monsoon Intensification</button>
+                    <button class="btn-secondary" onclick="alert('Drought Scenario Loaded')">🏜️ Severe Drought</button>
+                    <button class="btn-secondary" onclick="alert('Climate Anomaly Scenario Loaded')">❄️ Freak Cold Spell</button>
+                    <button class="btn-secondary" onclick="alert('Extreme Heat Scenario Loaded')">🔥 Extreme Heat Wave</button>
+                </div>
+            </div>
+
+            <!-- PAGE 7: ACTION RECOMMENDATION & IMPACT SCORING -->
+            <div id="page7" class="page">
+                <h1>🎯 Action Recommendation & Impact Scoring</h1>
+
+                <div class="mission-briefing">
+                    <p>Operational decision support layer calculating the proprietary Oracle Impact Score, vulnerability indices, and structured "What Now" emergency response steps for civil authorities.</p>
+                </div>
+
+                <h2>Oracle Impact Score</h2>
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Oracle Impact Score</div>
+                        <div class="metric-value">8.7 / 10</div>
+                        <span class="status-badge status-critical">CRITICAL</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Population at Risk</div>
+                        <div class="metric-value">2.3M</div>
+                        <div class="metric-subtitle">Affected Districts</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Infrastructure Exposure</div>
+                        <div class="metric-value">847</div>
+                        <div class="metric-subtitle">Critical Facilities</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Economic Impact Est.</div>
+                        <div class="metric-value">₹2.4B</div>
+                        <div class="metric-subtitle">Potential Losses</div>
+                    </div>
+                </div>
+
+                <h2>Vulnerability Index Breakdown</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 1.5rem;">
+                    <div class="stat-row">
+                        <span class="stat-label">SOCIAL VULNERABILITY INDEX</span>
+                        <span class="stat-value">7.2 / 10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">INFRASTRUCTURE VULNERABILITY</span>
+                        <span class="stat-value">6.8 / 10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ECONOMIC VULNERABILITY</span>
+                        <span class="stat-value">7.5 / 10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ENVIRONMENTAL VULNERABILITY</span>
+                        <span class="stat-value">6.1 / 10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ADAPTIVE CAPACITY INDEX</span>
+                        <span class="stat-value">5.4 / 10 (LOW)</span>
+                    </div>
+                </div>
+
+                <h2>Recommended Action Plan: "WHAT NOW"</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 2rem;">
+                    <div style="background: rgba(255, 0, 85, 0.1); border-left: 4px solid var(--crimson); padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                        <p style="font-family: var(--font-mono); color: var(--crimson); font-weight: 700; margin-bottom: 0.5rem;">⚠️ IMMEDIATE (0–4 HOURS)</p>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.5rem;">✓ Activate Emergency Operations Center (EOC)</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Issue Early Warning Alert to all district officials</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Pre-position rescue teams and equipment in high-risk zones</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Begin evacuation drills in vulnerable settlements</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: rgba(255, 183, 0, 0.1); border-left: 4px solid var(--amber); padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                        <p style="font-family: var(--font-mono); color: var(--amber); font-weight: 700; margin-bottom: 0.5rem;">⚠️ SHORT-TERM (4–24 HOURS)</p>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.5rem;">✓ Issue public advisories via SMS/media channels</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Deploy medical teams and sanitation units</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Secure food, water, and shelter supplies</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Monitor river levels and rainfall in real-time</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: rgba(0, 153, 255, 0.1); border-left: 4px solid var(--info-blue); padding: 1rem; border-radius: 6px;">
+                        <p style="font-family: var(--font-mono); color: var(--info-blue); font-weight: 700; margin-bottom: 0.5rem;">ℹ️ RECOVERY (24–72 HOURS)</p>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.5rem;">✓ Assess damage and prioritize reconstruction</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Restore critical infrastructure (power, water)</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Coordinate inter-district mutual aid</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <button class="btn-command" onclick="alert('Action Report Generated & Ready for Export')">📄 GENERATE ACTION REPORT</button>
+                </div>
+            </div>
+
+            <!-- PAGE 8: SYSTEM DIAGNOSTICS & DevOps TELEMETRY -->
+            <div id="page8" class="page">
+                <h1>⚙️ System Diagnostics & DevOps Telemetry</h1>
+
+                <div class="mission-briefing">
+                    <p>Infrastructure status monitor detailing FastAPI backend latency, PostgreSQL database connections, Docker container health, CI/CD GitHub Actions pipelines, and hardware utilization metrics.</p>
+                </div>
+
+                <h2>Backend Services Status</h2>
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">FastAPI Server</div>
+                        <div class="metric-value">99.8%</div>
+                        <span class="status-badge status-ok">OPERATIONAL</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">PostgreSQL Database</div>
+                        <div class="metric-value">99.6%</div>
+                        <span class="status-badge status-ok">HEALTHY</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Avg API Latency</div>
+                        <div class="metric-value">147 ms</div>
+                        <span class="status-badge status-ok">OPTIMAL</span>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Request Throughput</div>
+                        <div class="metric-value">8,420 req/min</div>
+                        <span class="status-badge status-ok">NORMAL</span>
+                    </div>
+                </div>
+
+                <h2>Database Performance Metrics</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 1.5rem;">
+                    <div class="stat-row">
+                        <span class="stat-label">ACTIVE DB CONNECTIONS</span>
+                        <span class="stat-value">24 / 100</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">QUERY AVERAGE DURATION</span>
+                        <span class="stat-value">38 MS</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">DATABASE SIZE</span>
+                        <span class="stat-value">14.2 GB</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">BACKUP STATUS</span>
+                        <span class="stat-value">DAILY (LAST: 2h AGO)</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">CACHE HIT RATIO</span>
+                        <span class="stat-value">92.3%</span>
+                    </div>
+                </div>
+
+                <h2>Docker & Containerization</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 2rem;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Container</th>
+                                <th>Status</th>
+                                <th>CPU Usage</th>
+                                <th>Memory Usage</th>
+                                <th>Uptime</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>oracle-fastapi-prod</td>
+                                <td><span class="status-badge status-ok">RUNNING</span></td>
+                                <td>18.3%</td>
+                                <td>512 MB / 2 GB</td>
+                                <td>14d 7h 32m</td>
+                            </tr>
+                            <tr>
+                                <td>postgres-db-primary</td>
+                                <td><span class="status-badge status-ok">RUNNING</span></td>
+                                <td>22.7%</td>
+                                <td>1.2 GB / 4 GB</td>
+                                <td>32d 18h 45m</td>
+                            </tr>
+                            <tr>
+                                <td>redis-cache-node</td>
+                                <td><span class="status-badge status-ok">RUNNING</span></td>
+                                <td>8.1%</td>
+                                <td>340 MB / 1 GB</td>
+                                <td>28d 3h 12m</td>
+                            </tr>
+                            <tr>
+                                <td>nginx-reverse-proxy</td>
+                                <td><span class="status-badge status-ok">RUNNING</span></td>
+                                <td>5.2%</td>
+                                <td>128 MB / 512 MB</td>
+                                <td>45d 22h 08m</td>
+                            </tr>
+                            <tr>
+                                <td>ml-inference-worker</td>
+                                <td><span class="status-badge status-ok">RUNNING</span></td>
+                                <td>42.6%</td>
+                                <td>3.1 GB / 8 GB</td>
+                                <td>7d 5h 21m</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>CI/CD & GitHub Actions Pipeline</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 2rem;">
+                    <div class="stat-row">
+                        <span class="stat-label">LAST BUILD STATUS</span>
+                        <span class="stat-value" style="color: var(--success-green);">✓ PASSED</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">BUILD DURATION</span>
+                        <span class="stat-value">4m 23s</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">LAST DEPLOYMENT</span>
+                        <span class="stat-value">2026-09-07 06:45:12 UTC</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">TEST COVERAGE</span>
+                        <span class="stat-value">87.4%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ACTIVE BRANCHES</span>
+                        <span class="stat-value">3 (main, dev, feature-xai)</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">COMMITS (LAST 7 DAYS)</span>
+                        <span class="stat-value">42</span>
+                    </div>
+                </div>
+
+                <h2>Hardware Utilization</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 2rem;">
+                    <div class="stat-row">
+                        <span class="stat-label">CPU UTILIZATION</span>
+                        <span class="stat-value">34.2%</span>
+                    </div>
+                    <div class="threat-meter">
+                        <div class="threat-meter-fill" style="width: 34.2%;"></div>
+                    </div>
+
+                    <div class="stat-row" style="margin-top: 1.5rem;">
+                        <span class="stat-label">MEMORY UTILIZATION</span>
+                        <span class="stat-value">61.8%</span>
+                    </div>
+                    <div class="threat-meter">
+                        <div class="threat-meter-fill" style="width: 61.8%;"></div>
+                    </div>
+
+                    <div class="stat-row" style="margin-top: 1.5rem;">
+                        <span class="stat-label">DISK UTILIZATION</span>
+                        <span class="stat-value">48.3%</span>
+                    </div>
+                    <div class="threat-meter">
+                        <div class="threat-meter-fill" style="width: 48.3%;"></div>
+                    </div>
+
+                    <div class="stat-row" style="margin-top: 1.5rem;">
+                        <span class="stat-label">NETWORK BANDWIDTH</span>
+                        <span class="stat-value">22.1%</span>
+                    </div>
+                    <div class="threat-meter">
+                        <div class="threat-meter-fill" style="width: 22.1%;"></div>
+                    </div>
+                </div>
+
+                <h2>Alert & Anomaly Summary</h2>
+                <div style="background: rgba(15, 20, 35, 0.5); backdrop-filter: blur(15px); border: 2px solid rgba(0, 240, 255, 0.2); border-radius: 10px; padding: 1.5rem; margin-top: 2rem;">
+                    <div class="stat-row">
+                        <span class="stat-label">CRITICAL ALERTS (24h)</span>
+                        <span class="stat-value" style="color: var(--success-green);">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">WARNING ALERTS (24h)</span>
+                        <span class="stat-value" style="color: var(--amber);">1</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ANOMALIES DETECTED</span>
+                        <span class="stat-value">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">SYSTEM HEALTH SCORE</span>
+                        <span class="stat-value" style="color: var(--success-green);">98.7 / 100</span>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const PREDICTION_API_URL = 'http://127.0.0.1:8001/api/v1/prediction';
+
+        // Navigation Logic
+        function navigateTo(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+
+            // Remove active class from all nav links
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+
+            // Show target page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+
+            // Highlight active nav link
+            event.target.closest('.nav-link').classList.add('active');
+        }
+
+        document.getElementById('prediction-form').addEventListener('submit', async function (submitEvent) {
+            submitEvent.preventDefault();
+            const result = document.getElementById('prediction-result');
+            result.textContent = 'RUNNING';
+            result.className = 'status-badge status-warning';
+
+            const number = (id) => Number(document.getElementById(id).value);
+            const payload = {
+                district: 'Nashik',
+                state: 'Maharashtra',
+                rainfall: number('prediction-rainfall'),
+                temperature: number('prediction-temperature'),
+                humidity: number('prediction-humidity'),
+                rainfall_mm: number('prediction-rainfall'),
+                temperature_c: number('prediction-temperature'),
+                relative_humidity_pct: number('prediction-humidity'),
+                tp: number('prediction-tp'),
+                avg_tprate: number('prediction-tprate'),
+                avg_lsprate: number('prediction-lsprate'),
+                avg_cpr: number('prediction-cpr'),
+                avg_ie: number('prediction-ie'),
+                avg_rorwe: number('prediction-rorwe')
+            };
+
+            try {
+                const response = await fetch(PREDICTION_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const prediction = await response.json();
+                const score = prediction.risk_score <= 1 ? prediction.risk_score * 100 : prediction.risk_score;
+                result.textContent = `LIVE: ${Math.round(score)}% ${prediction.risk_level.toUpperCase()}`;
+                result.className = score >= 75 ? 'status-badge status-critical' : score >= 55 ? 'status-badge status-warning' : 'status-badge status-ok';
+            } catch (error) {
+                result.textContent = 'API OFFLINE';
+                result.className = 'status-badge status-critical';
+                console.error('Prediction request failed:', error);
+            }
+        });
+
+        // Smooth initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('%c🚀 ORACLE AI COMMAND CENTRE INITIALIZED', 'color: #00f0ff; font-size: 16px; font-weight: bold;');
+            console.log('%cSystem Status: ALL SYSTEMS NOMINAL', 'color: #00ff88; font-size: 12px;');
+        });
+    </script>
+</body>
+</html>
